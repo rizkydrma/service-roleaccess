@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Role from '../db/models/Role';
-import { CatchError } from '../utils/Error';
+import { CatchError } from '../helpers/Error';
 
 const GetRole = async (req: Request, res: Response): Promise<Response> => {
   try {
