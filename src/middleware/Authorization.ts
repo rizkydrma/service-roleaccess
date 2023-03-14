@@ -13,6 +13,11 @@ const Authenticated = (req: Request, res: Response, next: NextFunction) => {
     }
 
     const result = Helper.extractToken(token!);
+    if (!result) {
+      return res
+        .status(401)
+        .send(Helper.responseData(401, 'Unautorized', null, null));
+    }
     next();
   } catch (error: any) {
     return res.status(500).send(Helper.responseData(500, '', error, null));

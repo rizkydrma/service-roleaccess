@@ -19,5 +19,6 @@ router.post(
   UserController.Register
 );
 router.post('/user/login', UserController.UserLogin);
+router.get('/user/refresh-token', UserController.RefreshToken);
 
 export default router;

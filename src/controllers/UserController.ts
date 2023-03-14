@@ -88,4 +88,46 @@ const UserLogin = async (
   }
 };
 
-export default { Register, UserLogin };
+const RefreshToken = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .send(Helper.responseData(401, 'Unauthorized', null, null));
+    }
+
+    const decodeUser = Helper.extractRefreshToken(refreshToken);
+    if (!decodeUser) {
+      return res
+        .status(401)
+        .send(Helper.responseData(401, 'Unauthorized', null, null));
+    }
+
+    const token = Helper.generateToken({
+      name: decodeUser.name,
+      email: decodeUser.email,
+      roleId: decodeUser.roleId,
+      verified: decodeUser.verified,
+      active: decodeUser.active,
+    });
+
+    const resultUser = {
+      name: decodeUser.name,
+      email: decodeUser.email,
+      roleId: decodeUser.roleId,
+      verified: decodeUser.verified,
+      active: decodeUser.active,
+      token: token,
+    };
+
+    return res
+      .status(200)
+      .send(Helper.responseData(200, 'OK', null, resultUser));
+  } catch (error) {
+    return res.status(500).send(Helper.responseData(500, '', error, null));
+  }
+};
+
+export default { Register, UserLogin, RefreshToken };
