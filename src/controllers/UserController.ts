@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import User from '../db/models/User';
 import Helper from '../helpers/Helper';
 import PasswordHelper from '../helpers/PasswordHelper';
@@ -26,4 +26,66 @@ const Register = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export default { Register };
+const UserLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response> => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(401)
+        .send(Helper.responseData(400, 'Unauthorize', null, null));
+    }
+
+    const matched = await PasswordHelper.PasswordCompare(
+      password,
+      user.password!
+    );
+    if (!matched) {
+      return res
+        .status(401)
+        .send(Helper.responseData(400, 'Unauthorize', null, null));
+    }
+
+    const dataUser = {
+      name: user.name,
+      email: user.email,
+      roleId: user.roleId,
+      verified: user.verified,
+      active: user.active,
+    };
+    const token = Helper.generateToken(dataUser);
+    const refreshToken = Helper.generateRefreshToken(dataUser);
+
+    user.accessToken = refreshToken;
+    await user.save();
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    const responseUser = {
+      name: user.name,
+      email: user.email,
+      roleId: user.roleId,
+      verified: user.verified,
+      active: user.active,
+      token: token,
+    };
+    return res
+      .status(200)
+      .send(Helper.responseData(200, 'OK', null, responseUser));
+  } catch (error: any) {
+    return res.status(500).send(Helper.responseData(500, '', error, null));
+  }
+};
+
+export default { Register, UserLogin };

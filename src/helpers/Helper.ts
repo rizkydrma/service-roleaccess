@@ -1,3 +1,16 @@
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+interface UserData {
+  name: string | null;
+  email: string | null;
+  roleId: string | null;
+  verified: boolean | null;
+  active: boolean | null;
+}
+
 const responseData = (
   status: number,
   message: string | null,
@@ -25,4 +38,68 @@ const responseData = (
   return res;
 };
 
-export default { responseData };
+const generateToken = (data: any): string => {
+  const token = jwt.sign(data, process.env.JWT_TOKEN as string, {
+    expiresIn: '10m',
+  });
+
+  return token;
+};
+
+const generateRefreshToken = (data: any): string => {
+  const token = jwt.sign(data, process.env.JWT_REFRESH_TOKEN as string, {
+    expiresIn: '1d',
+  });
+
+  return token;
+};
+
+const extractToken = (token: string): UserData | null => {
+  const secretKey: string = process.env.JWT_TOKEN as string;
+
+  let resData: any;
+
+  const res = jwt.verify(token, secretKey, (err, decode) => {
+    if (err) {
+      resData = null;
+    } else {
+      resData = decode;
+    }
+  });
+
+  if (resData) {
+    const result: UserData = <UserData>resData;
+    return result;
+  }
+
+  return null;
+};
+
+const extractRefreshToken = (token: string): UserData | null => {
+  const secretKey: string = process.env.JWT_REFRESH_TOKEN as string;
+
+  let resData: any;
+
+  const res = jwt.verify(token, secretKey, (err, decode) => {
+    if (err) {
+      resData = null;
+    } else {
+      resData = decode;
+    }
+  });
+
+  if (resData) {
+    const result: UserData = <UserData>resData;
+    return result;
+  }
+
+  return null;
+};
+
+export default {
+  responseData,
+  generateToken,
+  generateRefreshToken,
+  extractToken,
+  extractRefreshToken,
+};
