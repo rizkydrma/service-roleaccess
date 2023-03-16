@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import Role from '../db/models/Role';
 import User from '../db/models/User';
 import Helper from '../helpers/Helper';
 import PasswordHelper from '../helpers/PasswordHelper';
@@ -105,20 +106,18 @@ const RefreshToken = async (req: Request, res: Response): Promise<Response> => {
         .send(Helper.responseData(401, 'Unauthorized', null, null));
     }
 
-    const token = Helper.generateToken({
+    const userData = {
       name: decodeUser.name,
       email: decodeUser.email,
       roleId: decodeUser.roleId,
       verified: decodeUser.verified,
       active: decodeUser.active,
-    });
+    };
+
+    const token = Helper.generateToken(userData);
 
     const resultUser = {
-      name: decodeUser.name,
-      email: decodeUser.email,
-      roleId: decodeUser.roleId,
-      verified: decodeUser.verified,
-      active: decodeUser.active,
+      ...userData,
       token: token,
     };
 
@@ -130,4 +129,70 @@ const RefreshToken = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export default { Register, UserLogin, RefreshToken };
+const UserDetail = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const email = res.locals.email;
+    const user = await User.findOne({
+      attributes: {
+        exclude: ['password', 'accessToken'],
+      },
+      where: {
+        email: email,
+      },
+      include: {
+        model: Role,
+        attributes: ['id', 'roleName'],
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .send(Helper.responseData(404, 'User Not Found', null, null));
+    }
+
+    return res.status(200).send(Helper.responseData(200, 'OK', null, user));
+  } catch (error) {
+    return res.status(500).send(Helper.responseData(500, '', error, null));
+  }
+};
+
+const UserLogout = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(200)
+        .send(Helper.responseData(200, 'User Logout', null, null));
+    }
+
+    const email = res.locals.email;
+    const user = await User.findOne({
+      attributes: {
+        exclude: ['password', 'accessToken'],
+      },
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      res.clearCookie('refreshToken');
+      return res
+        .status(200)
+        .send(Helper.responseData(200, 'User Logout', null, null));
+    }
+
+    await user.update({ accessToken: null }, { where: { email: email } });
+    res.clearCookie('refreshToken');
+
+    return res
+      .status(200)
+      .send(Helper.responseData(200, 'User Logout', null, null));
+  } catch (error) {
+    return res.status(500).send(Helper.responseData(500, '', error, null));
+  }
+};
+
+export default { Register, UserLogin, RefreshToken, UserDetail, UserLogout };
