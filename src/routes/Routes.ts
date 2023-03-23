@@ -1,16 +1,13 @@
 import express from 'express';
 import RoleController from '../controllers/RoleController';
 import UserController from '../controllers/UserController';
+import MasterMenuController from '../controllers/MasterMenuController';
 import Authorization from '../middleware/Authorization';
 import UserValidation from '../middleware/validation/UserValidation';
 
 const router = express.Router();
 
-router.get(
-  '/role',
-
-  RoleController.GetRole
-);
+router.get('/role', RoleController.GetRole);
 router.get('/role/:id', RoleController.GetRoleById);
 router.post(
   '/role',
@@ -48,6 +45,50 @@ router.get(
   '/user/logout',
   Authorization.Authenticated,
   UserController.UserLogout
+);
+
+// Master Menu Routing
+router.post(
+  '/menu',
+  Authorization.Authenticated,
+  Authorization.Admin,
+  MasterMenuController.CreateMenu
+);
+router.get(
+  '/menu',
+  Authorization.Authenticated,
+  Authorization.Admin,
+  MasterMenuController.GetListMenu
+);
+router.get(
+  '/menu/all',
+  Authorization.Authenticated,
+  Authorization.SuperUser,
+  MasterMenuController.GetAllMenu
+);
+router.get(
+  '/menu/:id',
+  Authorization.Authenticated,
+  Authorization.Admin,
+  MasterMenuController.GetDetailMenu
+);
+router.patch(
+  '/menu/:id',
+  Authorization.Authenticated,
+  Authorization.Admin,
+  MasterMenuController.UpdateMenu
+);
+router.delete(
+  '/menu/:id',
+  Authorization.Authenticated,
+  Authorization.Admin,
+  MasterMenuController.SoftDeleteMenu
+);
+router.delete(
+  '/menu/permanent/:id',
+  Authorization.Authenticated,
+  Authorization.SuperUser,
+  MasterMenuController.DeleteMenu
 );
 
 export default router;
