@@ -4,6 +4,7 @@ import UserController from '../controllers/UserController';
 import MasterMenuController from '../controllers/MasterMenuController';
 import Authorization from '../middleware/Authorization';
 import UserValidation from '../middleware/validation/UserValidation';
+import MenuValidation from '../middleware/validation/MenuValidation';
 
 const router = express.Router();
 
@@ -46,10 +47,17 @@ router.get(
   Authorization.Authenticated,
   UserController.UserLogout
 );
+router.get(
+  '/users',
+  Authorization.Authenticated,
+  Authorization.SuperUser,
+  UserController.GetAllUser
+);
 
 // Master Menu Routing
 router.post(
   '/menu',
+  MenuValidation.CreateMenuValidation,
   Authorization.Authenticated,
   Authorization.Admin,
   MasterMenuController.CreateMenu
@@ -74,6 +82,7 @@ router.get(
 );
 router.patch(
   '/menu/:id',
+  MenuValidation.CreateMenuValidation,
   Authorization.Authenticated,
   Authorization.Admin,
   MasterMenuController.UpdateMenu

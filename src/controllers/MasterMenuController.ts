@@ -140,7 +140,6 @@ const DeleteMenu = async (req: Request, res: Response): Promise<Response> => {
     const menu = await MasterMenu.findOne({
       where: {
         id,
-        active: true,
       },
     });
 

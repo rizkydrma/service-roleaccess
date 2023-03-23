@@ -125,6 +125,24 @@ const RefreshToken = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
+const GetAllUser = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const users = await User.findAll({
+      attributes: {
+        exclude: ['password', 'accessToken'],
+      },
+      include: {
+        model: Role,
+        attributes: ['id', 'roleName'],
+      },
+    });
+
+    return res.status(200).send(Helper.responseData(200, 'OK', null, users));
+  } catch (error) {
+    return res.status(500).send(Helper.responseData(500, '', error, null));
+  }
+};
+
 const UserDetail = async (req: Request, res: Response): Promise<Response> => {
   try {
     const email = res.locals.email;
@@ -191,4 +209,11 @@ const UserLogout = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export default { Register, UserLogin, RefreshToken, UserDetail, UserLogout };
+export default {
+  Register,
+  UserLogin,
+  RefreshToken,
+  UserDetail,
+  UserLogout,
+  GetAllUser,
+};
