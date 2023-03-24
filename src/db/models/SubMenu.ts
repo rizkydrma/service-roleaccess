@@ -6,6 +6,7 @@ interface SubMenuAttributes {
   name?: string | null;
   masterMenuId?: number | null;
   icon?: string | null;
+  url?: string | null;
   title?: string | null;
   ordering?: number | null;
   isTargetSelf?: boolean | null;
@@ -26,6 +27,7 @@ class SubMenu
   public name!: string;
   public masterMenuId!: number;
   public icon!: string;
+  public url!: string;
   public title!: string;
   public ordering!: number;
   public isTargetSelf!: boolean;
@@ -56,6 +58,10 @@ SubMenu.init(
       type: DataTypes.STRING,
     },
     icon: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
+    url: {
       allowNull: true,
       type: DataTypes.TEXT,
     },
